@@ -1,0 +1,54 @@
+<html>
+    <head>
+        <title>Lista de Tarefas</title>
+        <style>
+            #visor{
+                width:255px;
+            }
+        </style>
+    </head>
+    <body>
+        
+        <input id="visor" placeholder="Digite uma Tarefa para adicioná-la à lista:">
+        <br>
+        <button id="adicionar">Adicionar</button>
+        <br>
+        <button id="tarefas">Mostrar tarefas</button>
+        <div id="resultado"></div>
+        <script>
+
+            let visor = document.getElementById("visor");
+            
+            async function adicionarTarefas(){
+                let tarefa_texto = visor.value;
+
+                fetch('http://localhost:3500/tarefas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ titulo: tarefa_texto})
+                });
+            };
+
+            async function carregarTarefas(){
+                let resposta = await fetch('http://localhost:3500/tarefas');
+                let dados = await resposta.json();
+                resultado.innerHTML = "";
+
+                dados.forEach(tarefa => {
+                    resultado.innerHTML += `<p> ${tarefa.titulo} </p>`;
+                });
+            };
+
+            document.getElementById("adicionar").onclick = function(){
+               adicionarTarefas();
+            };
+
+            document.getElementById("tarefas").onclick = function(){
+                carregarTarefas();
+            };
+           
+
+
+        </script>
+    </body>
+</html>
