@@ -2,52 +2,91 @@
     <head>
         <title>Lista de Tarefas</title>
         <style>
-            #visor{
+            #visor_adicionar{
                 width:255px;
+            }
+            body{
+                background: black;
+                color: white;
             }
         </style>
     </head>
     <body>
         
-        <input id="visor" placeholder="Digite uma Tarefa para adicioná-la à lista:">
+        <input id="visor_adicionar" placeholder="Digite uma Tarefa para adicioná-la à lista:">
+        <input id="visor_alterar" placeholder="Digite a alteração:">
+        <br>
+        <br>
+        <button id="alterar">Alterar</button>
+        <br>
         <br>
         <button id="adicionar">Adicionar</button>
         <br>
-        <button id="tarefas">Mostrar tarefas</button>
-        <div id="resultado"></div>
+        <br>
+        <button id="mostrar">Mostrar tarefas</button>
+        <br>
+        <br>
+        <div id="tela"></div>
         <script>
+            let mostrar = document.getElementById("mostrar");
+            let alterar = document.getElementById("alterar");
+            let adicionar = document.getElementById("adicionar");
+            let visor_alterar = document.getElementById("visor_alterar");
+            let visor_adicionar = document.getElementById("visor_adicionar");
 
-            let visor = document.getElementById("visor");
+            async function mostrarTarefas(){
+                let resposta = await fetch('http://localhost:3500/tarefas');
+                let dados = await resposta.json();
+                tela.innerHTML = "";
+
+                dados.forEach(tarefa => {
+                    tela.innerHTML += `<p>ID ${tarefa.id}: ${tarefa.titulo} | <button id=${tarefa.id}>Deletar</button> </p>`;
+                });
+                
+                for (let i = 0; i < dados.length; i++){
+                    document.getElementById(dados[i].id).onclick = async function(){
+                            await fetch(`http://localhost:3500/tarefas/${dados[i].id}`, {
+                            method: "DELETE"
+                        });
+                        mostrarTarefas();
+                    };
+                    };
+                };
+            
+            mostrar.onclick = function(){
+                mostrarTarefas();
+            };
             
             async function adicionarTarefas(){
-                let tarefa_texto = visor.value;
+                let tarefa_texto = visor_adicionar.value;
 
                 fetch('http://localhost:3500/tarefas', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ titulo: tarefa_texto})
                 });
+
+                mostrarTarefas();
             };
 
-            async function carregarTarefas(){
-                let resposta = await fetch('http://localhost:3500/tarefas');
-                let dados = await resposta.json();
-                resultado.innerHTML = "";
+            adicionar.onclick = function(){
+                adicionarTarefas();
+            }
 
-                dados.forEach(tarefa => {
-                    resultado.innerHTML += `<p> ${tarefa.titulo} </p>`;
-                });
-            };
+           async function alterarTarefas(){
+            let tarefa_alterar = visor_alterar.value;
+            let tarefa_id = visor_adicionar.value;
+            await fetch(`http://localhost:3500/tarefas/${tarefa_id}`, {
+                method: "PUT",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ titulo: tarefa_alterar})
+            });
+            mostrarTarefas();
+           };
 
-            document.getElementById("adicionar").onclick = function(){
-               adicionarTarefas();
-            };
-
-            document.getElementById("tarefas").onclick = function(){
-                carregarTarefas();
-            };
-           
-
+           alterar.onclick = function(){
+            alterarTarefas();
+           }
 
         </script>
     </body>
