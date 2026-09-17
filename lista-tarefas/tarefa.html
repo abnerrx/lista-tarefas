@@ -12,12 +12,7 @@
         </style>
     </head>
     <body>
-        
         <input id="visor_adicionar" placeholder="Digite uma Tarefa para adicioná-la à lista:">
-        <input id="visor_alterar" placeholder="Digite a alteração:">
-        <br>
-        <br>
-        <button id="alterar">Alterar</button>
         <br>
         <br>
         <button id="adicionar">Adicionar</button>
@@ -27,31 +22,48 @@
         <br>
         <br>
         <div id="tela"></div>
+        <br>
+        <br>
+        <div id="tela_erros"></div>
         <script>
             let mostrar = document.getElementById("mostrar");
-            let alterar = document.getElementById("alterar");
             let adicionar = document.getElementById("adicionar");
-            let visor_alterar = document.getElementById("visor_alterar");
             let visor_adicionar = document.getElementById("visor_adicionar");
 
             async function mostrarTarefas(){
-                let resposta = await fetch('http://localhost:3500/tarefas');
-                let dados = await resposta.json();
+                let requisicao = await fetch('http://localhost:3500/tarefas');
+                let dados = await requisicao.json();
                 tela.innerHTML = "";
-
-                dados.forEach(tarefa => {
-                    tela.innerHTML += `<p>ID ${tarefa.id}: ${tarefa.titulo} | <button id=${tarefa.id}>Deletar</button> </p>`;
-                });
                 
-                for (let i = 0; i < dados.length; i++){
-                    document.getElementById(dados[i].id).onclick = async function(){
-                            await fetch(`http://localhost:3500/tarefas/${dados[i].id}`, {
-                            method: "DELETE"
-                        });
-                        mostrarTarefas();
-                    };
-                    };
-                };
+                    dados.forEach(tarefa => {
+                        tela.innerHTML += `<p>ID ${tarefa.id}: ${tarefa.titulo} | <button id="deletar-${tarefa.id}">Deletar</button> | <button id="alterar-${tarefa.id}">Alterar</button> </p>`;
+                    });
+                
+                    for (let i = 0; i < dados.length; i++){
+                        document.getElementById(`alterar-${dados[i].id}`).onclick = async function(){
+                            let tarefa_alterar = visor_adicionar.value;
+                        
+                            let requisicao = await fetch(`http://localhost:3500/tarefas/${dados[i].id}`, {
+                                method: "PUT",
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ titulo: tarefa_alterar})
+                            });
+                            let texto = await requisicao.text()
+                            tela_erros.innerHTML = texto;
+                            mostrarTarefas();        
+                        }
+                        
+                            }
+
+                    for (let i = 0; i < dados.length; i++){
+                        document.getElementById(`deletar-${dados[i].id}`).onclick = async function(){
+                                await fetch(`http://localhost:3500/tarefas/${dados[i].id}`, {
+                                method: "DELETE"
+                            });
+                            mostrarTarefas();
+                        };
+                        };
+                        };
             
             mostrar.onclick = function(){
                 mostrarTarefas();
@@ -60,33 +72,21 @@
             async function adicionarTarefas(){
                 let tarefa_texto = visor_adicionar.value;
 
-                fetch('http://localhost:3500/tarefas', {
+                let requisicao = await fetch('http://localhost:3500/tarefas', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ titulo: tarefa_texto})
                 });
-
+                let texto = await requisicao.text();
+                tela_erros.innerHTML = texto; 
                 mostrarTarefas();
+                
             };
 
             adicionar.onclick = function(){
                 adicionarTarefas();
             }
-
-           async function alterarTarefas(){
-            let tarefa_alterar = visor_alterar.value;
-            let tarefa_id = visor_adicionar.value;
-            await fetch(`http://localhost:3500/tarefas/${tarefa_id}`, {
-                method: "PUT",
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ titulo: tarefa_alterar})
-            });
-            mostrarTarefas();
-           };
-
-           alterar.onclick = function(){
-            alterarTarefas();
-           }
+            
 
         </script>
     </body>
