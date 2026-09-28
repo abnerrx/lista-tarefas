@@ -1,0 +1,122 @@
+<html>
+    <head>
+        <title>Lista de Tarefas</title>
+        <style>
+            #visor_adicionar{
+                width:255px;
+            }
+            body{
+                background: black;
+                color: white;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>Suas Tarefas</h2>
+        <input id="visor_adicionar" placeholder="Digite uma Tarefa para adicioná-la à lista:">
+        <br><br>
+        <button id="adicionar">Adicionar</button>
+        <br><br>
+        <button id="logout">Sair (Logout)</button>
+        <br><br>
+        <button id="mostrar">Mostrar tarefas</button>
+        <br><br>
+        <div id="tela"></div>
+        <br><br>
+        <div id="tela_erros"></div>
+        <script>
+            let mostrar = document.getElementById("mostrar");
+            let adicionar = document.getElementById("adicionar");
+            let logout = document.getElementById("logout");
+            let visor_adicionar = document.getElementById("visor_adicionar");
+            const usuario_id = localStorage.getItem('usuario_id');
+
+
+            if (!usuario_id) {
+                alert("Você precisa fazer login primeiro!");
+                window.location.href = 'index.html';
+            }
+
+            async function mostrarTarefas(){
+                tela_erros.innerHTML = "";
+                let requisicao = await fetch(`http://localhost:3500/tarefas/${usuario_id}`);
+                let dados = await requisicao.json();
+                
+
+
+                tela.innerHTML = "";
+                
+                    dados.forEach(tarefa => {
+                        tela.innerHTML += `
+                        <p>
+                            ID ${tarefa.id}: ${tarefa.titulo} |
+                            <button id="deletar-${tarefa.id}">Deletar</button> |
+                            <button id="alterar-${tarefa.id}">Alterar</button>
+                            </p>`;
+                    });
+                
+                    for (let i = 0; i < dados.length; i++){
+                        document.getElementById(`alterar-${dados[i].id}`).onclick = async function(){
+                            let tarefa_alterar = visor_adicionar.value;
+                        
+                            let requisicao = await fetch(`http://localhost:3500/tarefas/${dados[i].id}`, {
+                                method: "PUT",
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ titulo: tarefa_alterar})
+                            });
+                            
+                            let resposta = await requisicao.json();
+                            if (requisicao.ok) {
+                                tela_erros.innerHTML = "";
+                                visor_adicionar.value = "";
+                            } else {
+                                tela_erros.innerHTML = resposta.erro || "Erro na operação";
+                            }
+                            mostrarTarefas();
+                        }};
+
+                    for (let i = 0; i < dados.length; i++){
+                        document.getElementById(`deletar-${dados[i].id}`).onclick = async function(){
+                                await fetch(`http://localhost:3500/tarefas/${dados[i].id}`, {
+                                method: "DELETE"
+                            });
+                            mostrarTarefas();
+                        };
+                        };
+                        };
+            
+            mostrar.onclick = function(){
+                mostrarTarefas();
+            };
+            
+            async function adicionarTarefas(){
+                let tarefa_texto = visor_adicionar.value;
+                let requisicao = await fetch('http://localhost:3500/tarefas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ titulo: tarefa_texto, usuario_id: usuario_id })
+                });
+                let resposta = await requisicao.json();
+                if (requisicao.ok) {
+                    tela_erros.innerHTML = "";
+                    visor_adicionar.value = "";
+                } else {
+                    tela_erros.innerHTML = resposta.erro || "Erro na operação";
+            }
+
+
+                mostrarTarefas();
+            };
+
+            adicionar.onclick = function(){
+                adicionarTarefas();
+            }
+
+            logout.onclick = function() {
+                localStorage.removeItem('usuario_id'); // Apaga o ID do navegador
+                window.location.href = 'index.html'; // Manda pro login
+            };
+            
+        </script>
+    </body>
+</html>

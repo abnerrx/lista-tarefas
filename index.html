@@ -1,0 +1,71 @@
+<html>
+    <head>
+        <title>Login</title>
+        <style>
+            #email{
+                width:255px;
+            }
+            #senha{
+                width:85px;
+            }
+            body{
+                background: black;
+                color: white;
+            }
+            p {
+                font-size: 20px;
+            }
+        </style>
+    </head>
+    <body>
+        <div>
+        <input id="email" placeholder="E-mail">
+        <br>
+        <input id="senha" placeholder="Senha">
+        <br>
+        <br>
+        <button id="login">Login</button>
+        <br>
+        <br>
+        <div id="tela_erro"></div>
+        <br>
+        <p>Não tem conta ?</p>
+        <button id="cadastro">Cadastro</button>
+        </div>
+        <script>
+            let botao_login = document.getElementById("login");
+            let botao_cadastro = document.getElementById("cadastro");
+            let email = document.getElementById("email");
+            let senha = document.getElementById("senha");
+            let tela_erro = document.getElementById("tela_erro");
+
+            async function Login(){
+                tela_erro.innerHTML = "";
+                let email_visor = email.value;
+                let senha_visor = senha.value;
+                let requisicao = await fetch('http://localhost:3500/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email_visor, senha: senha_visor})
+                });
+                let dados = await requisicao.json();
+                if (requisicao.ok) {
+                    localStorage.setItem('usuario_id', dados.id);
+                    window.location.href = 'tarefa.html'
+                
+                } else {
+                    tela_erro.innerHTML = dados.erro;
+                };
+                
+            }
+            botao_login.onclick = function(){
+                Login();
+            }
+
+            botao_cadastro.onclick = function(){
+                window.location.href = 'cadastro.html';
+            }
+            
+        </script>
+    </body>
+</html>

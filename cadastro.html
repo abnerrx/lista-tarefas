@@ -1,0 +1,73 @@
+<html>
+    <head>
+        <title>Cadastro</title>
+        <style>
+            #email{
+                width:255px;
+            }
+            #senha{
+                width:85px;
+            }
+            body{
+                background: black;
+                color: white;
+            }
+            p {
+                font-size: 20px;
+            }
+        </style>
+    </head>
+    <body>
+        <div>
+        <input id="email" placeholder="E-mail">
+        <br>
+        <input id="senha" placeholder="Senha">
+        <br>
+        <input id="nome" placeholder="Nome">
+        <br>
+        <br>
+        <button id="cadastro">Cadastrar</button>
+        <br>
+        <br>
+        <br>
+        </div>
+        <div id="tela_erro"></div>
+        <br>
+        <br>
+        <p>Já criou ou possui uma conta ?</p>
+        <button id="login">Login</button>
+        <script>
+            let botao_login = document.getElementById("login");
+            let botao_cadastro = document.getElementById("cadastro");
+            let email = document.getElementById("email");
+            let senha = document.getElementById("senha");
+            let nome = document.getElementById("nome");
+            let tela_erro = document.getElementById("tela_erro");
+            async function Cadastrar(){
+                tela_erro.innerHTML = "";
+                let email_visor = email.value;
+                let senha_visor = senha.value;
+                let nome_visor = nome.value;
+                let requisicao = await fetch('http://localhost:3500/cadastro', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email_visor, senha: senha_visor, nome: nome_visor})
+                });
+                let dados = await requisicao.json();
+                console.log(dados);
+                if (requisicao.ok){
+                tela_erro.innerHTML += dados.mensagem;
+                } else {
+                    tela_erro.innerHTML += dados.erro;
+                }
+            }
+            botao_cadastro.onclick = function(){
+                Cadastrar();
+            };
+
+            botao_login.onclick = function(){
+                window.location.href = 'index.html'
+            };
+        </script>
+    </body>
+</html>
